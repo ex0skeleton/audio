@@ -71,3 +71,12 @@ server.js / package.json — optional local preview
 README.md — setup and troubleshooting
 
 Validation: npm run check; code compression/legacy round trips, invalid code rejection, wrong roles, whitespace handling, and completed/partial/empty ICE discovery checks. Live Android/PC audio compatibility needs device testing.
+
+## Version 1.1.1 diagnostic update
+The supplied log identified desktop Linux Chrome and recorded a receiver code generated successfully after 15 seconds. It did not capture an Android failure.
+
+Code generation now returns after a stable set of routes has been found (typically a few seconds). It waits longer when only local routes exist. Later-discovered routes may not be included, so restrictive networks can still require TURN or a retry. Compression has a 2.5-second fallback to the old uncompressed format instead of leaving code generation waiting indefinitely. The generated code is brought into view and the header shows Code ready.
+
+The footer must show **Version 1.1.1 · Manual pairing**. File URLs are versioned to avoid reusing old JS/CSS. If an old Reset label appears where Export JSON log belongs, refresh the page after deployment; on Android close the old tab and reopen the published URL with `?v=1.1.1` appended. An older cached index.html still needs that reload; versioned assets cannot replace an HTML page already open.
+
+Export now also records touch support, viewport size, and browser mobile/platform hints where available. Export JSON log is initialized by the diagnostics module independently of the main app, so it can work if the main app fails to initialize (provided diagnostics itself loads). Reproduce on Android and export there; if both devices fail, send both logs.
