@@ -1,11 +1,11 @@
 {
   "name": "audio-wiz",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check js/app.js && node --check js/connection.js && node --check js/diagnostics.js"
+    "check": "node --check server.js && node --check js/app.js && node --check js/connection.js && node --check js/diagnostics.js && node --check js/audio.js"
   },
   "engines": {
     "node": ">=18"

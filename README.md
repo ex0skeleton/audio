@@ -80,3 +80,18 @@ Code generation now returns after a stable set of routes has been found (typical
 The footer must show **Version 1.1.1 · Manual pairing**. File URLs are versioned to avoid reusing old JS/CSS. If an old Reset label appears where Export JSON log belongs, refresh the page after deployment; on Android close the old tab and reopen the published URL with `?v=1.1.1` appended. An older cached index.html still needs that reload; versioned assets cannot replace an HTML page already open.
 
 Export now also records touch support, viewport size, and browser mobile/platform hints where available. Export JSON log is initialized by the diagnostics module independently of the main app, so it can work if the main app fails to initialize (provided diagnostics itself loads). Reproduce on Android and export there; if both devices fail, send both logs.
+
+## Version 1.2.0 — audio and help update
+The fixed bottom-right glass question-mark button opens instructions and JSON log export. Disconnect is in the connection-panel header. The connection badge is larger/bold; Connected glows once and remains orange (animation disabled for reduced-motion users).
+
+For YouTube choose **YouTube / browser tab audio** on the sending PC. Select the actual YouTube tab and enable Share tab audio in Chrome/Edge's picker. For VLC/PowerPoint choose **PC apps / entire system audio**, Entire Screen and the system-audio checkbox if offered. Stop and pair again when changing sources. Browser sharing permissions cannot be enabled by this app. Some browser/OS combinations do not offer full system capture.
+
+Microphone mode captures room noise; use direct digital capture for PC music. Microphone automatic gain is now disabled, with optional voice echo/noise cleanup. Tab/system capture requests processing off. Audio requests stereo Opus up to 192 kbps where negotiated and supported; it cannot restore quality missing from the source. The browser ultimately controls the capture settings. These are now included in logs without device names or IDs.
+
+Receiving playback uses a single Web Audio path with a 0–300% gain slider and compressor/limiter. This avoids duplicate playback and offers amplification above the old 100% ceiling. Limiting reduces overload but does not guarantee artifact-free audio at high boost. Start with 100%, increase original player/phone media volume, then boost if needed. Amplification also raises pre-existing static. Received recordings remain unboosted. The slider boost requires browser Web Audio support; tap Enable listening if autoplay is blocked.
+
+Diagnostics now also include codec, audio-level and concealed-sample counters where supplied by the browser. These can help investigate packet loss and static. No specific cause of the reported static is proven without a new reproduction and logs.
+
+Validation for this release: JavaScript syntax; mocked tab/system capture requests and microphone processing; receiver gain/limiter graph; Opus SDP parameter preservation and sender bitrate; unique DOM IDs and UI references. An attempted automated browser test could not start because the browser binary is not installed here. Actual YouTube/system capture, sound quality and phone speaker output require testing on the user's PC and Android.
+
+After pushing, reopen the HTTPS page on BOTH devices with `?v=1.2.0` appended. Confirm Version 1.2.0 in the footer, and create new pairing codes. The older setup notes for earlier releases above are retained as history; use these capture and gain instructions for this version.
