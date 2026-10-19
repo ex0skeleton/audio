@@ -1,41 +1,73 @@
-# Audio Wiz
-Wireless browser audio between Android and PC. No account, package installation, or pairing backend. Manual WebRTC offer/reply exchange. This is a working implementation; actual phone/PC audio and network behavior must be tested on your devices.
+# Audio Wiz — Manual pairing, updated
 
+This restores the original server-free pairing approach. GitHub Pages can host the entire app. No broadcast server, npm dependencies, app login, or password is required.
 
-## . Android microphone → PC
-1. Connect PC and phone to the same Wi-Fi for the first test. Avoid guest Wi-Fi / access point isolation.
-2. On PC, leave Receive audio selected. Click Create receiver code. Wait until the code appears.
-3. Copy the whole code and send it privately to your phone (e.g. a message to yourself).
-4. On phone, select Send audio. Leave Microphone selected. Paste the PC code into Code from your other device.
-5. Tap Start source & create reply. Allow microphone access. Keep this page open while it gathers the reply.
-6. Copy the phone’s reply code and send it back to the PC.
-7. Paste the reply on PC and click Connect audio.
-8. If silent, click Enable listening. Speak into the phone. Use headphones to prevent feedback.
-9. Record received audio on PC if wanted. Stop recording, then click the generated download link. Recordings remain in memory until downloaded; navigating away discards them.
-10. Reset on BOTH devices before making another connection. Codes are unique to a pairing attempt; stale codes do not reconnect.
+## Update your existing GitHub project
+Extract this ZIP. Copy the CONTENTS of Audio-Wiz into your existing VS Code project, replacing the previous files. Keep your existing .git folder. The old package-lock.json and node_modules from the broadcast version are no longer needed; remove them if present.
 
-Reverse sender and receiver to send PC microphone audio to Android.
+In VS Code Terminal:
+```powershell
+git add .
+git commit -m "Restore manual pairing and add debugging logs"
+git push
+```
+Use GitHub repository → Settings → Pages → Deploy from a branch → main → / (root). Open the published HTTPS link on both devices. After deployment, refresh both pages to load the updated version. Do not double-click index.html; browser ES modules need HTTP/HTTPS hosting.
 
-## . Music / audio files → other device
-Pair as above, but choose Audio file on the sending device and choose a file before creating the reply. Once connected, use the built-in audio player’s Play / Pause / Seek controls. Only the remote device plays the file; the sender does not locally monitor it. Keep this page open. Browser-supported file formats only.
+If creating a new repository instead, initialize and connect it with git init, git add ., git commit, git branch -M main, git remote add origin YOUR-REPOSITORY-URL, then git push -u origin main.
 
-## . PC tab / screen audio → Android
-Use Chrome or Edge on PC. Set Android to Receive audio and create its first code. On PC select Send audio → PC tab / screen audio, paste the first code and create the reply. In the browser sharing dialog select a tab and enable Share tab audio. System audio is available only where the browser/OS offers it. If no audio track is supplied, the app explains why. Finish by pasting the PC reply on Android. Video is requested to open the sharing picker, but ONLY the audio track is added to the connection. Stop sharing or Reset when finished. Protected media may not be capturable.
+## Phone microphone → PC
+- On PC choose Receive audio → Create receiver code. Wait for the code to appear.
+- Copy the complete code to your phone using a private message or shared clipboard.
+- On phone choose Send audio → Microphone. Paste the PC code in the lower input box.
+- Tap Start source & create reply, then allow microphone access.
+- Copy the phone’s generated reply back to the PC’s lower input box.
+- On PC click Connect audio. Click Enable listening if needed.
+- Use headphones to prevent feedback. Keep Android unlocked and the page in the foreground.
+- Reset both devices before starting a new pairing. Old codes cannot establish a new session.
 
-## . Different networks
-Default STUN discovery can establish direct internet connections on some networks, but cannot guarantee it. For reliable traversal obtain a TURN service or self-host a TURN server. Before creating codes, enter the TURN URL, username and password under Network settings on BOTH devices. Credentials are not stored or included in project files. Use temporary credentials from your provider. Force relay tests whether TURN actually works. Reset and generate new codes after any network setting change.
+To reverse audio direction, reverse sender and receiver. For audio files choose the file before creating the sender reply, then press Play once connected. For PC shared audio use Chrome/Edge, select a tab, and enable the audio checkbox in the sharing picker; OS/system-audio availability varies. Only audio is transmitted.
 
-GitHub Pages serves the app; it is NOT a TURN server. No relay service is bundled or paid for. A TURN relay carries encrypted WebRTC audio; it can still see connection metadata. The default STUN service is Google’s public STUN endpoint. Turn STUN off to attempt same-LAN-only discovery without that service; browsers/router policies can still prevent discovery.
+## Why the codes are still longer than 6–8 characters
+A manual connection code carries network routes, session identifiers, audio settings, and cryptographic identity details. This version compresses those details (AW2. prefix), instead of simply base64-encoding them. Length varies, and they still require copy/paste. A short typeable code would only be a lookup key; a server would need to store and deliver the actual connection information. That would bring back the setup you chose to avoid. No six-character lookup service is included.
 
-## Limits & troubleshooting
-- This streams to the browser. It does not register as a Windows input microphone. For Zoom/games/other apps you need a separately installed virtual audio cable/driver and must route browser playback to it.
-- Pairing requires exchanging TWO long codes each time, not a short room PIN. This avoids a signaling server. Codes include network/session details: share only with your own intended device. Do not publish them.
-- Audio delay varies. Network round trip is NOT full microphone-to-speaker latency. Do not use as a precise musical monitor.
-- Keep Android unlocked, browser foreground, volume up, and disable aggressive battery saving. Screen-off/background capture is not guaranteed.
-- If connected but silent: click Enable listening, check permissions and volume, play the chosen file, and verify the screen sharing audio checkbox.
-- If failed: Reset both ends, exchange new codes, try a normal non-guest Wi-Fi, then TURN. VPNs/firewalls can block WebRTC.
-- On some devices the browser may require another tap to start audio. Microphone access is always permission based.
-- Recordings accumulate in RAM. Use short sessions and download before closing the tab.
-- Receiver volume changes playback only, not the recording level.
-- The uploaded index(8).html was a shell referencing css/fonts.css and css/styles.css, neither attached. The app follows its dark cards, orange controls, header, and main/sidebar arrangement. Inter and Outfit are substitutes loaded from Google Fonts with system fallbacks; exact original fonts cannot be identified from that HTML. Replace css/fonts.css with your original font declarations and font files if you want an exact match.
+New versions accept old AW1. codes too. If a browser lacks compression APIs it generates a longer AW1. code. A browser unable to decode compressed codes needs an update. Use the current app on both devices.
 
+## Android debugging
+Export JSON log is in the Your connection header. It remains available while code generation or a permission prompt is pending.
+- Reproduce the issue, then tap Export JSON log on Android.
+- Also export the PC log after the failed pairing.
+- Send both JSON files for diagnosis. The download is a snapshot; export again after new errors.
+
+Logs include browser/capability information, secure-context status, action/error messages, candidate TYPE and protocol (not candidate IP), ICE/signaling/connection states, code length, visibility changes, and audio packet/byte statistics. Logs do not intentionally include audio, full connection codes, SDP, TURN passwords, or raw candidate addresses. Logs are kept in memory (last 1,500 events), not uploaded anywhere automatically. Reloading clears them.
+
+Changes intended to help diagnose stalls:
+- Network discovery waits up to 15 seconds. If usable routes have already been found, it generates a code with those routes rather than discarding everything on timeout. Routes discovered later are not in that code, so pairing can still fail on restrictive networks.
+- If no routes were found, it shows an explicit error rather than emitting an unusable code.
+- A waiting audio permission request shows a reminder after 15 seconds. The browser itself controls that permission request; no success is assumed and the app does not silently grant access.
+- Code corruption, wrong code type, and audio-permission errors have explicit messages.
+
+Try Chrome on Android, confirm microphone permission for the HTTPS page, disable VPN for a test, and use normal Wi-Fi rather than guest Wi-Fi. Insecure LAN HTTP cannot access the Android microphone. This update improves diagnostics; it does not establish the cause of your particular failure until logs are reviewed.
+
+## Network settings
+Default public Google STUN helps discover direct routes. Same Wi-Fi is recommended for the first test; access point isolation/firewalls can block it. Different networks sometimes require TURN. Enter your own relay details on both devices before generating codes. TURN is optional and not bundled. Credentials are memory-only. Share pairing codes privately.
+
+## Optional PC preview
+Node.js 18+ → `npm start` → http://localhost:3000. No npm install required. This preview is only for PC; publish on HTTPS for Android. The included server.js only serves static files and is not a pairing backend.
+
+## Limits
+This receives/records audio within the browser; it does not appear as a Windows microphone in other software without a virtual audio driver. Android background/screen-off streaming is not guaranteed. Recordings consume RAM: keep them short, stop, and download before closing. Displayed network round trip is not full microphone-to-speaker delay. Receiver volume affects listening, not recording level.
+
+## Design
+Orange #ef6823, white text on orange buttons, and no numbered option labels. Inter/Outfit substitutes remain because the supplied original HTML did not include its font/CSS files.
+
+## Project files
+index.html — interface
+css/fonts.css / css/styles.css — fonts and responsive theme
+js/app.js — audio, pairing, playback, recording
+js/connection.js — compressed code format, validation, discovery, ICE settings
+js/diagnostics.js — in-memory events and JSON export
+assets/favicon.svg — icon
+server.js / package.json — optional local preview
+README.md — setup and troubleshooting
+
+Validation: npm run check; code compression/legacy round trips, invalid code rejection, wrong roles, whitespace handling, and completed/partial/empty ICE discovery checks. Live Android/PC audio compatibility needs device testing.

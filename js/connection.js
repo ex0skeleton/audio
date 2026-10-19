@@ -1,19 +1,3 @@
-export function encode(description) { return 'AW1.' + btoa(JSON.stringify({type:description.type,sdp:description.sdp})); }
-export function decode(text, expected) {
- const value=text.trim(); if(value.length>150000 || !value.startsWith('AW1.')) throw Error('Paste a complete Audio Wiz connection code.');
- let data;try{data=JSON.parse(atob(value.slice(4)));}catch{throw Error('This code is incomplete or damaged. Copy it again.');}
- if(data.type!==expected || typeof data.sdp!=='string' || !data.sdp.startsWith('v=0')) throw Error(`This device needs an ${expected} code. Check Send / Receive on both devices.`);
- return {type:data.type,sdp:data.sdp};
-}
-export function gather(pc, timeout=30000) {
- if(pc.iceGatheringState==='complete')return Promise.resolve();
- return new Promise((resolve,reject)=>{
- const done=()=>{clearTimeout(timer);pc.removeEventListener('icegatheringstatechange',change);};
- const change=()=>{if(pc.iceGatheringState==='complete'){done();resolve();}};
- const timer=setTimeout(()=>{done();reject(Error('Network discovery timed out. Reset and retry, or try TURN settings.'));},timeout);
- pc.addEventListener('icegatheringstatechange',change);
- });
-}
 export function configuration() {
  const $=id=>document.getElementById(id),iceServers=[];
  if($('stun').checked)iceServers.push({urls:'stun:stun.l.google.com:19302'});
@@ -22,3 +6,6 @@ export function configuration() {
  if($('relay').checked&&!url)throw Error('Enter TURN details before forcing relay.');
  return {iceServers,iceTransportPolicy:$('relay').checked?'relay':'all',iceCandidatePoolSize:0};
 }
+export async function encode(description){const plain=JSON.stringify({type:description.type,sdp:description.sdp});if(typeof CompressionStream==='undefined')return 'AW1.'+btoa(plain);const bytes=new Uint8Array(await new Response(new Blob([plain]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());let raw='';for(const b of bytes)raw+=String.fromCharCode(b);return 'AW2.'+btoa(raw).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');}
+export async function decode(text,expected){const code=text.replace(/\s/g,'');if(code.length>150000)throw Error('Connection code is too large.');let data;try{if(code.startsWith('AW1.'))data=JSON.parse(atob(code.slice(4)));else if(code.startsWith('AW2.')){if(typeof DecompressionStream==='undefined')throw Error('This browser needs an update to read compressed codes.');const raw=atob(code.slice(4).replaceAll('-','+').replaceAll('_','/')),bytes=Uint8Array.from(raw,c=>c.charCodeAt(0)),reader=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate')).getReader();let total=0,parts=[];try{while(true){const {done,value}=await reader.read();if(done)break;total+=value.length;if(total>150000){await reader.cancel();throw Error('Decoded code too large.');}parts.push(value);}}finally{reader.releaseLock();}data=JSON.parse(await new Blob(parts).text());}else throw Error('Paste the full code, including the AW2. or AW1. prefix.');}catch(e){if(e.message.includes('browser')||e.message.includes('prefix'))throw e;throw Error('Incomplete or damaged code. Copy and paste it again.');}if(!data||data.type!==expected||typeof data.sdp!=='string'||!data.sdp.startsWith('v=0'))throw Error(expected==='offer'?'Paste the receiver code on this sending device.':'Paste the sender reply on this receiving device.');return {type:data.type,sdp:data.sdp};}
+export function gather(pc,log=()=>{},timeout=15000){return new Promise((resolve,reject)=>{let timer;const finish=partial=>{clearTimeout(timer);pc.removeEventListener('icegatheringstatechange',change);const count=(pc.localDescription?.sdp.match(/^a=candidate:/gm)||[]).length;log('gather-finished',{partial,candidateCount:count});if(!count)reject(Error('No network routes found. Try Chrome, disable VPN, or enable STUN / configure TURN, then Reset and retry.'));else resolve({partial});};const change=()=>{if(pc.iceGatheringState==='complete')finish(false);};pc.addEventListener('icegatheringstatechange',change);timer=setTimeout(()=>finish(true),timeout);if(pc.iceGatheringState==='complete')finish(false);});}
