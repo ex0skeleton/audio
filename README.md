@@ -95,3 +95,12 @@ Diagnostics now also include codec, audio-level and concealed-sample counters wh
 Validation for this release: JavaScript syntax; mocked tab/system capture requests and microphone processing; receiver gain/limiter graph; Opus SDP parameter preservation and sender bitrate; unique DOM IDs and UI references. An attempted automated browser test could not start because the browser binary is not installed here. Actual YouTube/system capture, sound quality and phone speaker output require testing on the user's PC and Android.
 
 After pushing, reopen the HTTPS page on BOTH devices with `?v=1.2.0` appended. Confirm Version 1.2.0 in the footer, and create new pairing codes. The older setup notes for earlier releases above are retained as history; use these capture and gain instructions for this version.
+
+## Version 1.2.1 — Android silent playback correction
+The Android 1.2.0 log showed a connected session receiving about 2.3 MB of Opus RTP with very little packet loss, while reported decoded samples remained zero. The Web Audio context reported ready, and pressing Enable listening did not resolve it. This narrows investigation toward decode/playout rather than proving a network failure or a particular root cause.
+
+Standard playback is now the default: the received stream stays attached to the native HTML audio player and play() is explicitly called. The 1.2.0 path had paused and detached that player in favor of Web Audio. Optional Boost playback retains an attached playing media element but mutes its direct output, so the gain graph is the only audible path. Switching back restores native sound at up to 100% without re-pairing. Browser-generated Opus offer/answer parameters are retained; explicit stereo SDP edits were removed. Codec preference and bitrate ceiling remain.
+
+After pushing, open BOTH devices with ?v=1.2.1 and verify the footer. Disconnect and create fresh codes. Leave Playback mode at Standard and phone media volume up. Tap Enable listening if required. If still silent, export logs on both PC and Android while still connected and the PC source is playing. Logs now include native player state, track mute state, energy and decode counters where available.
+
+Checks: syntax, mocked capture requests, native element srcObject/play/unmuted volume path, optional boost with direct output muted, and switch back. Actual Android speaker playback still requires a device test; no browser binary is available in this environment.
