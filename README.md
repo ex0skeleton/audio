@@ -104,3 +104,8 @@ Standard playback is now the default: the received stream stays attached to the 
 After pushing, open BOTH devices with ?v=1.2.1 and verify the footer. Disconnect and create fresh codes. Leave Playback mode at Standard and phone media volume up. Tap Enable listening if required. If still silent, export logs on both PC and Android while still connected and the PC source is playing. Logs now include native player state, track mute state, energy and decode counters where available.
 
 Checks: syntax, mocked capture requests, native element srcObject/play/unmuted volume path, optional boost with direct output muted, and switch back. Actual Android speaker playback still requires a device test; no browser binary is available in this environment.
+
+## Version 1.2.2 — interface only
+Uses the existing favicon SVG as the header logo. Help contains plain usage instructions. Buttons are more compact, Connect audio stays grey/disabled until a receiver code exists and a nonblank reply is pasted, and a Connected message appears at the bottom for three seconds. Existing code validation still handles incorrect replies on submission. Source capture, audio playback, codec configuration, connection-code format and ICE gathering are unchanged from the working 1.2.1 version.
+
+Checks: syntax, receiver button readiness and reset/busy states, toast dismissal, existing mocked audio-path checks, and direct comparison confirming capture/playback functions and audio/connection modules are unchanged. Reopen both pages with ?v=1.2.2 after pushing.
