@@ -1,0 +1,4 @@
+/* The supplied HTML references fonts.css, but that file and its fonts were not attached.
+   Replace these families or add your original @font-face declarations here. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+:root{--font-body:Inter,Arial,sans-serif;--font-display:Outfit,Inter,Arial,sans-serif}
