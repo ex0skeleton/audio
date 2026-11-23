@@ -1,0 +1,3 @@
+// Opus preferences preserve full-band music when the peer supports them.
+export function preferOpus(pc){for(const t of pc.getTransceivers()){const caps=globalThis.RTCRtpSender?.getCapabilities?.('audio');if(caps&&t.setCodecPreferences){const opus=caps.codecs.filter(c=>c.mimeType.toLowerCase()==='audio/opus');if(opus.length)t.setCodecPreferences([...opus,...caps.codecs.filter(c=>c.mimeType.toLowerCase()!=='audio/opus')]);}}}
+export async function setAudioBitrate(sender){if(!sender?.getParameters)return;const p=sender.getParameters();if(!p.encodings?.length)p.encodings=[{}];p.encodings[0].maxBitrate=192000;await sender.setParameters(p);}
